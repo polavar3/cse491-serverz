@@ -14,10 +14,17 @@ print 'The Web server URL for this would be http://%s:%d/' % (host, port)
 s.listen(5)                 # Now wait for client connection.
 
 print 'Entering infinite loop; hit CTRL-C to exit'
+
 while True:
     # Establish connection with client.    
     c, (client_host, client_port) = s.accept()
     print 'Got connection from', client_host, client_port
-    c.send('Thank you for connecting')
-    c.send("good bye.")
+    c.send("HTTP/1.0 200 OK\r\n")
+    c.send("Content-Type: text/html\r\n\r\n")
+    c.send("<html>")
+    c.send("<body>")
+    c.send("<h1>Hello World</h1>")
+    c.send("This is polavar3's web server")
+    c.send("</body>")
+    c.send("</html>")
     c.close()
