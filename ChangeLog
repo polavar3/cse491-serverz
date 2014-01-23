@@ -3,3 +3,10 @@
  * Initialized repository, created server.py and README.
  * Got rid of the "Thanks for connecting" and "Good Bye" sends in server.py
  * Did a "c.send" for each segment of the HTTP code
+ * Added a return an HTTP 1.0 response 200 OK
+ * Added a return for a 'content-type' of text/html
+ * Added a body containing the server owner's name
+ * Added a print.c.recv(1000) line to add more info
+ * Added functions in both server.py and test_server.py to handle connections and server work
+ * Added links for the content, file and image pages
+ * Added support for POST requests
