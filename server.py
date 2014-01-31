@@ -5,6 +5,10 @@ import time
 from urlparse import urlparse
 from urlparse import parse_qs
 
+# @CTB please be sure to spaces rather than tabs for indentation.
+# what editor are you using? You can usually set it up to
+# do the right thing.
+
 def main():
      s = socket.socket()         # Create a socket object
      host = socket.getfqdn() # Get local machine name
@@ -33,6 +37,7 @@ def handle_connection(conn):
     urlPath = urlInfo.path
 
     if request[0] == 'GET':
+        # @CTB: what is 'host' here meant to do/be? It's not used anywhere...?
         try:
 		host = request[3].split('\r')
 		host = host[0]
@@ -77,7 +82,7 @@ def handle_index(conn, urlInfo):
     conn.send(toSend)
 
 def handle_content(conn, urlInfo):
-    toSend = 'HTTP/1.O 200 OK\r\n' + \
+    toSend = 'HTTP/1.0 200 OK\r\n' + \
 	     'Content-type: text/html\r\n\r\n' + \
 	     '<h1><marquee>Look at all this content!</marquee></h1>'
     conn.send(toSend)
