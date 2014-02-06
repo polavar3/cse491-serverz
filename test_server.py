@@ -53,6 +53,9 @@ def test_handle_content():
 
     server.handle_connection(content_conn)
 
+    print (expected_return,)
+    print (content_conn.sent,)
+
     assert content_conn.sent == expected_return, 'Got: %s' % (repr(content_conn.sent),)
 
 def test_handle_file():
@@ -82,16 +85,19 @@ def test_handle_form():
 		      'First Name:<input type="text" name="firstName">' + \
 		      'Last Name:<input type="text" name="lastName">' + \
 		      '<input type="submit" value="Submit Get">' + \
-		      '</form>\r\n\>' + \
+		      '</form>\r\n' + \
 		      '<form action="/submit" method="POST">' + \
 		      'First Name:<input type="text" name="firstName">' + \
 		      'Last Name:<input type="text" name="lastName">' + \
 		      '<input type="submit" value="Submit Post">' + \
-		      '</form>\r\n\>'
+		      '</form>\r\n'
 
     server.handle_connection(form_conn)
 
-    assert form_conn.send == expected_return, 'Got: %s' % (repr(form_conn.sent),)
+    print (form_conn.sent,)
+    print (expected_return,)
+
+    assert form_conn.sent == expected_return, 'Got: %s' % (repr(form_conn.sent),)
 
 def test_post_request():
     post_conn = FakeConnection("POST /image HTTP/1.0\r\n\r\n")
@@ -101,7 +107,7 @@ def test_post_request():
 
     server.handle_connection(post_conn)
 
-    assert post_conn.send == expected_return, 'Got: %s' % (repr(post_conn.sent),)
+    assert post_conn.sent == expected_return, 'Got: %s' % (repr(post_conn.sent),)
 
 def test_handle_get_submit():
     submit_conn = FakeConnection("GET /submit?firstName=Ari&lastName=Polavarapu HTTP/1.0\r\n\r\n")
@@ -113,7 +119,7 @@ def test_handle_get_submit():
 
     server.handle_connection(submit_conn)
 
-    assert submit_conn.send == expected_return, 'Got: %s' % (repr(submit_conn.sent),)
+    assert submit_conn.sent == expected_return, 'Got: %s' % (repr(submit_conn.sent),)
 
 def test_handle_post_submit():
     submit_conn = FakeConnection("POST /submit HTTP/1.0\r\n\r\nfirstName=Ari&lastName=Polavarapu")
@@ -125,7 +131,10 @@ def test_handle_post_submit():
 
     server.handle_connection(submit_conn)
 
-    assert submit_conn.send == expected_return, 'Got: %s' % (repr(submit_conn.sent),)
+    print (submit_conn.sent,)
+    print (expected_return,)
+
+    assert submit_conn.sent == expected_return, 'Got: %s' % (repr(submit_conn.sent),)
 
 
 
