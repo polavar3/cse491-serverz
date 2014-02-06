@@ -2,8 +2,10 @@
 import random
 import socket
 import time
-from urlparse import urlparse
-from urlparse import parse_qs
+import urlparse
+import cgi
+import jinja2
+from StringIO import StringIO
 
 # @CTB please be sure to spaces rather than tabs for indentation.
 # what editor are you using? You can usually set it up to
@@ -29,121 +31,162 @@ def main():
         handle_connection(c)
 
 def handle_connection(conn):
-    info = conn.recv(1000)
+    loader = jinja2.FileSystemLoader('./templates')
+    env = jinja2.Environment(loader=loader)
 
-    request = info.split(' ')
-    urlRequest = request[1]
-    urlInfo = urlparse(urlRequest)
-    urlPath = urlInfo.path
+    request = conn.recv(1)
 
-    if request[0] == 'GET':
-        # @CTB: what is 'host' here meant to do/be? It's not used anywhere...?
-        try:
-		host = request[3].split('\r')
-		host = host[0]
-	except IndexError:
-		host = '';
+    # Getting all the headers
+    while request[-4:] != '\r\n\r\n':
+        request += conn.recv(1)
 
-	if urlPath == '/':
-		handle_index(conn, urlInfo)
-	elif urlPath == '/content':
-		handle_content(conn, urlInfo)
-	elif urlPath == '/file':
-		handle_file(conn, urlInfo)
- 	elif urlPath == '/image':
-		handle_image(conn, urlInfo)
-	elif urlPath == '/form':
-		handle_form(conn, urlInfo)
-	elif urlPath == '/submit':
-		handle_submit(conn, urlInfo, info, 'GET')
-	else:
-		handle_no_page(conn, urlInfo)
+    first_line_of_request_split = request.split('\r\n')[0].split(' ')
 
-    elif request[0] == 'POST':
-	if urlPath == '/submit':
-		handle_submit(conn, urlInfo, info, 'POST')
-	else:
-		handle_post(conn, info)
+    # Path is the second element in the first line of the request separated by whitespace.
+    # GET/POST is first (Between GET and HTTP/1.1)
+    http_method = first_line_of_request_split[0]
 
+    try:
+        parsed_url = urlparse.urlparse(first_line_of_request_split[1])
+        path = parsed_url[2]
+    except:
+        not_found(conn, '', env)
+        return
+
+    if http_method == 'POST':
+        headers_dict, content = parse_post_request(conn, request)
+        environ = {}
+        environ['REQUEST_METHOD'] = 'POST'
+
+        # Printing the request
+        print request + content
+        form = cgi.FieldStorage(headers = headers_dict, fp = StringIO(content), environ = environ)
+
+        if path == '/':
+                handle_index(conn, '', env)
+        elif path == '/submit':
+                # POST has parameters at the end of content body
+                handle_submit_post(conn, form, env)
+        else:
+                not_found(conn, '', env)
+    else:
+        print request
+        if path == '/':
+                handle_index(conn, '', env)
+        elif path == '/content':
+                handle_content(conn, '', env)
+        elif path == '/file':
+                handle_file(conn, '', env)
+        elif path == '/image':
+                handle_image(conn, '', env)
+        elif path == '/submit':
+                handle_submit_get(conn, parsed_url[4], env)
+        else:
+                not_found(conn, '', env)
     conn.close()
 
-def handle_index(conn, urlInfo):
-    toSend = 'HTTP/1.0 200 OK\r\n' + \
-	     'Content-type: text/html\r\n\r\n' + \
-   	     '<body bgcolor = "green">' + \
- 	     '<h1>Hello, world.</h1>' + \
-	     'This is polavar3\'s Web server.' + \
-	     '<br>' + \
-	     '<a href="/content">Content</a><br>' + \
-	     '<a href="/file">File</a><br>' + \
-	     '<a href="/image">Image</a><br>' + \
-	     '<a href="/form">Form</a><br>' + \
-             '</body>'
+def handle_index(conn, params, env):
+    toSend  = 'HTTP/1.0 200 OK\r\n' + \
+	       'Content-type: text/html\r\n\r\n' + \
+               env.get_template("index_result.html").render()
+    
     conn.send(toSend)
 
-def handle_content(conn, urlInfo):
+def handle_content(conn, params, env):
     toSend = 'HTTP/1.0 200 OK\r\n' + \
 	     'Content-type: text/html\r\n\r\n' + \
-	     '<h1><marquee>Look at all this content!</marquee></h1>'
+             env.get_template("content_result.html").render()
+
     conn.send(toSend)
 
-def handle_file(conn, urlInfo):
+def handle_file(conn, params, env):
     toSend = 'HTTP/1.0 200 OK\r\n' + \
 	     'Content-type: text/html\r\n\r\n' + \
-	     '<h1>This is polavar3\'s file page.</h1>' 
+             env.get_template("file_result.html").render()
+
     conn.send(toSend)
 
-def handle_image(conn, urlInfo):
+def handle_image(conn, params, env):
     toSend = 'HTTP/1.0 200 OK\r\n' + \
 	     'Content-type: text/html\r\n\r\n' + \
-	     '<h1>This is polavar3\'s image page.</h1>' 
+             env.get_template("image_result.html").render()
+ 
     conn.send(toSend)
 
-def handle_form(conn, urlInfo):
+def handle_submit_post(conn, params, env):
+    try:
+             firstname = form['firstname'].value
+    except KeyError:
+             firstname = ''
+    try:
+             lastname = form['firstname'].value
+    except KeyError:
+             lastname = ''
+
+    vars = dict(firstname = firstname, lastname = lastname)
+    template = env.get_template("submit_result.html")
+ 
     toSend = 'HTTP/1.0 200 OK\r\n' + \
+             'Content-type: text/html\r\n' + \
+             '\r\n' + \
+             env.get_template("submit_result.html").render(vars)
+
+    conn.send(toSend)
+
+def handle_submit_get(conn, params, env):
+    params = urlparse.parse_qs(params)
+
+    try:
+             firstname = params['firstname'][0]
+    except KeyError:
+             firstname = ''
+    try:
+             lastname = params['lastname'][0]
+    except KeyError:
+             lastname = ''
+
+    vars = dict(firstname = firstname, lastname = lastname)
+    template = env.get_template("submit_result.html")
+ 
+    toSend = 'HTTP/1.0 200 OK\r\n' + \
+             'Content-type: text/html\r\n' + \
+             '\r\n' + \
+             env.get_template("submit_result.html").render(vars)
+
+    conn.send(toSend)
+
+def not_found(conn, params, env):
+    toSend = 'HTTP/1.0 404 Not Found \r\n' + \
 	     'Content-type: text/html\r\n' + \
-	     '\r\n' + \
-	     '<form action="/submit" method="GET">' + \
-	     'First Name:<input type="text" name="firstName">' + \
-	     'Last Name:<input type="text" name="lastName">' + \
-	     '<input type="submit" value="Submit Get">' + \
-             '</form>\r\n' + \
-	     '<form action="/submit" method="POST">' + \
-	     'First Name:<input type="text" name="firstName">' + \
-	     'Last Name:<input type="text" name="lastName">' + \
-             '<input type="submit" value="Submit Post">' + \
-             '</form>\r\n'
+             '\r\n' + \
+             env.get_template("not_found.html").render()
+
     conn.send(toSend)
 
-def handle_submit(conn, urlInfo, info, reqType):
-    if reqType == 'GET':
-	     query = urlInfo.query
-    elif reqType == 'POST':
-	     query = info.splitlines()[-1]
+def parse_post_request(conn, request):
+    # Takes in a string request, parses it and returns a dictionary
+    # of header name => header value
+    # returns a string built from content of the request
+    
+    header_dict = dict()
 
-    data = parse_qs(query) 
-    firstName = data['firstName'][0]
-    lastName = data['lastName'][0]
-    greeting = 'Hello Mr. {0} {1}.'.format(firstName, lastName)
-    toSend = 'HTTP/1.0 200 OK\r\n' + \
-	     'Content-type: text/html\r\n\r\n' + \
-	     '<p>' + \
-	     greeting + \
-	     '</p>' 
-    conn.send(toSend)
+    request_split = request_split('\r\n')
+    
+    # Headers are separated from the content by '\r\n' which, after the split is just ''.
+    # First line isn't a header but everything else upto the empty line is. 
+    # Names are separated by ':'
+    
+    for i in range(1, len(request_split) - 2):
+             header = request_split[i].split(":", 1)
+             header_dict[header[0].lower()] = header[1]
 
-def handle_no_page(conn, urlInfo):
-    toSend = 'HTTP/1.0 200 OK\r\n' + \
-	     'Content-type: text/html\r\n\r\n' + \
-	     '<h2>This page does not exist.</h2>' 
-    conn.send(toSend)
+    content_length = int(header_dict['content-length'])
 
-def handle_post(conn, urlInfo):
-    toSend = 'HTTP/1.0 200 OK\r\n' + \
-	     'Content-type: text/html\r\n\r\n' + \
-	     '<h1>Hello, world.</h1>' 
-    conn.send(toSend)
+    content = ''
+    for i in range(0, content_length):
+             content += conn.recv(1)
 
+    return header_dict, content
 
 if __name__ == '__main__':
     main()
