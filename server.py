@@ -87,7 +87,8 @@ def handle_connection(conn):
 
 def handle_index(conn, params, env):
     toSend  = 'HTTP/1.0 200 OK\r\n' + \
-	       'Content-type: text/html\r\n\r\n' + \
+	       'Content-type: text/html\r\n' + \
+               '\r\n' + \
                env.get_template("index_result.html").render()
     
     conn.send(toSend)
@@ -101,19 +102,21 @@ def handle_content(conn, params, env):
 
 def handle_file(conn, params, env):
     toSend = 'HTTP/1.0 200 OK\r\n' + \
-	     'Content-type: text/html\r\n\r\n' + \
+	     'Content-type: text/html\r\n' + \
+             '\r\n' + \
              env.get_template("file_result.html").render()
 
     conn.send(toSend)
 
 def handle_image(conn, params, env):
     toSend = 'HTTP/1.0 200 OK\r\n' + \
-	     'Content-type: text/html\r\n\r\n' + \
+	     'Content-type: text/html\r\n' + \
+             '\r\n' + \
              env.get_template("image_result.html").render()
  
     conn.send(toSend)
 
-def handle_submit_post(conn, params, env):
+def handle_submit_post(conn, form, env):
     try:
              firstname = form['firstname'].value
     except KeyError:
@@ -170,7 +173,7 @@ def parse_post_request(conn, request):
     
     header_dict = dict()
 
-    request_split = request_split('\r\n')
+    request_split = request.split('\r\n')
     
     # Headers are separated from the content by '\r\n' which, after the split is just ''.
     # First line isn't a header but everything else upto the empty line is. 

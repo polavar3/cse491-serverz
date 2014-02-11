@@ -38,7 +38,7 @@ def test_handle_connection():
 def test_handle_connection_content():
     conn = FakeConnection("GET /content HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(content_conn)
+    server.handle_connection(conn)
  
     assert 'HTTP/1.0 200' in conn.sent and 'content' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
@@ -46,7 +46,7 @@ def test_handle_connection_content():
 def test_handle_connenction_file():
     conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
     
-    server.handle_connection(file_conn)
+    server.handle_connection(conn)
  
     assert 'HTTP/1.0 200' in conn.sent and 'file' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
@@ -56,19 +56,20 @@ def test_handle_connection_image():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<h1><marquee>Much image.</marquee></h1>'
-    server.handle_connection(image_conn)
+    server.handle_connection(conn)
     print conn.sent
  
     assert 'HTTP/1.0 200' in conn.sent and 'image' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_submit():
-    conn = FakeConnection("GET /submit?firstName=Ari&lastName=Polavarapu HTTP/1.0\r\n\r\n")
+    conn = FakeConnection("GET /submit?firstName=Ari&lastName=Polavarapu" + \
+                          " HTTP/1.1\r\n\r\n")
 
     server.handle_connection(conn)
 
-    assert 'html' in conn.sent and "Ari" in conn.sent \
-    and 'Polavarapu' in conn.sent, 'Got: %s' % (repr(submit_conn.sent),)
+    assert 'html' in conn.sent and 'Ari' in conn.sent \
+    and 'Polavarapu' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
 def test_handle_submit_no_first_name():
     conn = FakeConnection("GET /submit?firstName=&lastname=Polavarapu" + \
@@ -112,21 +113,21 @@ def test_handle_submit_post():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200' in conn.sent and 'Hello Mr" in conn.sent, \
+    assert 'HTTP/1.0 200' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_submit_post_multipart_and_form_data():
     conn = FakeConnection("POST /submit " + \
-                          "HTTP/1.1\r\nContent-lenght: 246\r\n\r\n------" + \
+                          "HTTP/1.1\r\nContent-length: 246\r\n\r\n------" + \
                           "WebKitFormBoundaryAaa127xQakxMcNYm\r\n" + \
-                          'Content-Disposition: form-data, name="firstname"\r\n\r\nAri' + \
-                          '\r\n------WebKitFormBoundaryAaa127xWakxMcNYm\r\n" + \
-                          'Content-Disposition: form-data, name="lastname"\r\n\r\nPolavarapu' + \
-                          '\r\n------WebKitFormBoundaryAaa127xWakxMcNYm--")')
+                          'Content-Disposition: form-data; name="firstname"\r\n\r\nAri' + \
+                          '\r\n------WebKitFormBoundaryAaa127xQakxMcNYm\r\n' + \
+                          'Content-Disposition: form-data; name="lastname"\r\n\r\nPolavarapu' + \
+                          '\r\n------WebKitFormBoundaryAaa127xQakxMcNYm--")')
 
     server.handle_connection(conn)
  
-    assert 'HTTP/1.0 200' in conn.sent and 'Hello Mr" in conn.sent, \
+    assert 'HTTP/1.0 200' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_not_found_post():
@@ -136,18 +137,18 @@ def test_handle_not_found_post():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 404' in conn.sent and 'want' conn.sent, \
+    assert 'HTTP/1.0 404' in conn.sent and 'want' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_long_request():
-    firstname = lastname = "VeryLongMuchLongMuchMuchLong" + 100
+    firstname = lastname = "VeryLongMuchLongMuchMuchLong" * 100
     conn = FakeConnection("POST /submit HTTP/1.1\r\n" + \
                           "Content-Length: 4020\r\n\r\n" + \
-                          "firstname=%s&lastname=&s" % (firstname, lastname))
+                          "firstname=%s&lastname=%s" % (firstname, lastname))
     
     server.handle_connection(conn)
  
-    assert 'HTTP/1.0 200' in conn.sent and 'Hello Mr" in conn.sent, \
+    assert 'HTTP/1.0 200' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_empty_request():
@@ -155,7 +156,7 @@ def test_handle_empty_request():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 404' in conn.sent and 'want' conn.sent, \
+    assert 'HTTP/1.0 404' in conn.sent and 'want' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
   
