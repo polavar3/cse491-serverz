@@ -10,3 +10,9 @@
  * Added functions in both server.py and test_server.py to handle connections and server work
  * Added links for the content, file and image pages
  * Added support for POST requests
+
+
+ * HW4
+ * Added basic HTML templating with jinja2
+ * Modified tests
+ 
