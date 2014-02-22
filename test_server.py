@@ -30,7 +30,7 @@ class FakeConnection(object):
 def test_handle_connection():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, "arctic.cse.msu.edu", "9943")
 
     assert 'HTTP/1.0 200' in conn.sent and 'form' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
@@ -38,7 +38,7 @@ def test_handle_connection():
 def test_handle_connection_content():
     conn = FakeConnection("GET /content HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, "arctic.cse.msu.edu", "9943")
 
     assert 'HTTP/1.0 200' in conn.sent and 'content' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
@@ -46,7 +46,7 @@ def test_handle_connection_content():
 def test_handle_connection_file():
     conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, "arctic.cse.msu.edu", "9943")
 
     assert 'HTTP/1.0 200' in conn.sent and 'file' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)

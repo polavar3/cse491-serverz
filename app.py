@@ -58,10 +58,10 @@ def handle_content(params, env):
     return str(env.get_template("content.html").render())
 
 def handle_file(params, env):
-    return str(env.get_template("file.html").render())
+    return read_file('./files/text.txt')
 
 def handle_image(params, env):
-    return str(env.get_template("image.html").render())
+    return read_file('./images/pony.jpeg')
 
 def handle_form(params, env):
     return str(env.get_template("form.html").render())
@@ -101,6 +101,12 @@ def handle_submit_get(environ, env):
 
 def handle_no_page(params, env):
     return str(env.get_template("404.html").render())
+
+def read_file(file_name):
+    fp = open(file_name, 'rb')
+    read_in = fp.read()
+    fp.close()
+    return read_in
 
 def make_app():
     return simple_app
