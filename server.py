@@ -2,10 +2,11 @@ import random
 import socket
 import time
 import urlparse
-import os
+import StringIO
 import sys
+import quixote
+import imageapp
 
-from StringIO import StringIO
 from app import make_app
 
 def main():
@@ -13,6 +14,8 @@ def main():
     host = socket.getfqdn() # Get local machine name
     port = random.randint(8000, 9999)
     s.bind((host, port)) # Bind to the port
+
+    wsgi_app = make_app() # Create wsgi app
 
     print "Starting server on", host, port
     print "The Web server URL for this would be http://%s:%d/" % (host, port)
@@ -24,90 +27,85 @@ def main():
     while True:
         # Establish connection with client
         c, (client_host, client_port) = s.accept()
-        print 'Got connection from', client_host, client_port, '\n'
-        handle_connection(c, host, port)
+        print 'Got connection from', client_host, client_port
+        handle_connection(c, wsgi_app)
 
 # Handles the connection
-def handle_connection(conn, host, port):
-    environ = dict(os.environ.items())
-    environ['wsgi.errors'] = sys.stderr
+def handle_connection(conn, wsgi_app):
+    # Read in request until end of header
+    request = ''
+    while '\r\n\r\n' not in request:
+        request += conn.recv(1)
+
+    # Avoid indexing error - make sure there is request
+    if not request:
+        conn.close()
+        return
+    
+    # Creates headers dictionary
+    headers = {}
+    for header in request.splitlines()[1:]:
+        try:
+            k, v = header.split(': ', 1)
+        except:
+            continue
+        headers[k.lower()] = v
+
+    # Read in rest of request to obtain message
+    message = ''
+    if 'content-length' in headers:
+        while len(message) < int(headers['content-length']):
+            message += conn.recv(1)
+
+    # Creates environ dictionary
+    environ = {}
+    environ['REQUEST_METHOD'] = request.splitlines()[0].split(' ')[0]
+    url = urlparse.urlparse(request.splitlines()[0].split(' ')[1])
+    environ['PATH_INFO'] = url.path
+    environ['QUERY_STRING'] = url.query
+    environ['CONTENT_TYPE'] = headers.get('content-type', '')
+    environ['CONTENT_LENGTH'] = headers.get('content-length', '')
+    environ['wsgi.input'] = StringIO.StringIO(message)
+
+    environ['SCRIPT_NAME'] = ''
+    environ['SERVER_NAME'] = 'My Server'
+    environ['SERVER_PORT'] = 'My Port'
     environ['wsgi.version'] = (1, 0)
+    environ['wsgi.errors'] = sys.stderr
     environ['wsgi.multithread'] = False
     environ['wsgi.multiprocess'] = True
     environ['wsgi.run_once'] = True
     environ['wsgi.url_scheme'] = 'http'
-    environ['SERVER_NAME'] = host
-    environ['SEVER_PORT'] = str(port)
-    environ['SCRIPT_NAME'] = ''
+    environ['HTTP_COOKIE'] = headers.get('cookie', '')
 
-    request = conn.recv(1)
+    # Declares variables in dictionary so they can be changed by start_response.
+    # Python 2.x doesn't support nonlocal keyword.
+    local = {'response' : '', 'started' : False}
 
-    # This will get all the headers
-    while request[-4:] != '\r\n\r\n':
-        request += conn.recv(1)
-
-    first_line_of_request_split = request.split('\r\n')[0].split(' ')
-
-    # Path is the second element in the first line of the request
-    # separated by whitespace. (Between GET and HTTP/1.1). GET/POST is first.
-    http_method = first_line_of_request_split[0]
-    environ['REQUEST_METHOD'] = first_line_of_request_split[0]
-
-    try:
-        parsed_url = urlparse.urlparse(first_line_of_request_split[1])
-        environ['PATH_INFO'] = parsed_url[2]
-    except:
-        pass
-
+    # Defines start_response function
     def start_response(status, response_headers):
-        conn.send('HTTP/1.0 ')
-        conn.send(status)
-        conn.send('\r\n')
-        for pair in response_headers:
-            key, header = pair
-            conn.send(key + ':' + header + '\r\n')
-        conn.send('\r\n')
+        local['started'] = True
 
-    if environ['REQUEST_METHOD'] == 'POST':
-        environ = parse_post_request(conn, request, environ)
-        environ['QUERY_STRING'] = ''
-    elif environ['REQUEST_METHOD'] == 'GET':
-        environ['QUERY_STRING'] = parsed_url.query
-        environ['wsgi.input'] = StringIO('')
+        # Restarts response every time function is called
+        local['response'] = ''
 
-    wsgi_app = make_app()
-    result = wsgi_app(environ, start_response)
-    try:
-        for response in result:
-            conn.send(response)
-    finally:
-        if hasattr(result, 'close'):
-            result.close()
+        # Appends status line and headers
+        local['response'] += 'HTTP/1.0 {0}\r\n'.format(status)
+        for header in response_headers:
+            local['response'] += '{0}: {1}\r\n'.format(header[0], header[1])
+        local['response'] += '\r\n' 
 
+        return
+
+    # Gets content of response from call to WSGI app
+    for response in wsgi_app(environ, start_response):
+        local['response'] += response
+
+    # Send response.
+    if local['started']:
+        conn.send(local['response'])
     conn.close()
-
-def parse_post_request(conn, request, environ):
-    request_split = request.split("\r\n")
-    
-    # Headers are separated from the content by '\r\n'
-    # which, after the split, is just ''.
-
-    # First line isn't a header, but everything else
-    # up to the empty line is. The names are separated
-    # from the values by ': '
-    
-    for i in range(1, len(request_split) - 2):
-        header = request_split[i].split(": ", 1)
-        environ[header[0].lower()] = header[1]
-
-    content_length = int(environ["CONTENT-LENGTH"])
-
-    content = ''
-    for i in range(0, content_length):
-        content += conn.recv(1)
-
-    environ["wsgi.input"] = StringIO(content)
-    return environ
+    return
 
 if __name__ == '__main__':
     main()
