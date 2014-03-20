@@ -20,11 +20,20 @@ class RootDirectory(Directory):
         print request.form.keys()
 
         the_file = request.form['file']
+        filetype = the_file.orig_filename.split('.')[1]
+        if(filetype == 'tif' or filetype == 'tiff'):
+            filetype = 'tiff'
+        elif(filetype == 'jpeg' or filetype == 'jpg'):
+            filetype = 'jpg'
+        else:
+            return
+
+        print 'received file of type: ' + filetype
         print dir(the_file)
         print 'received file with name:', the_file.base_filename
         data = the_file.read(int(1e9))
 
-        image.add_image(data)
+        image.add_image(data, filetype)
 
         return quixote.redirect('./')
 
@@ -35,6 +44,6 @@ class RootDirectory(Directory):
     @export(name='image_raw')
     def image_raw(self):
         response = quixote.get_response()
-        response.set_content_type('image/png')
         img = image.get_latest_image()
-        return img
+        response.set_content_type('image/%s' % img[1])
+        return img[0]

@@ -1,6 +1,6 @@
 import random
 import socket
-import time
+import argparse
 import urlparse
 import StringIO
 import sys
@@ -8,14 +8,36 @@ import quixote
 import imageapp
 
 from app import make_app
+from quixote.demo import create_publisher
 
 def main():
     s = socket.socket()    # Creating a socket object
     host = socket.getfqdn() # Get local machine name
-    port = random.randint(8000, 9999)
-    s.bind((host, port)) # Bind to the port
 
-    wsgi_app = make_app() # Create wsgi app
+    parser = argparse.ArgumentParser() # Creating a parser
+    parser.add_argument("-A", choices=['image', 'altdemo', 'myapp'],
+            help='Choose which app you would like to run')
+    parser.add_argument("-p", type=int, help="Choose the port you would like to run on")
+    args = parser.parse_args()
+
+    # Check to see if a port is specified
+    if args.p == None:
+        port = random.randint(8000, 9999) # Creating WSGI app
+        s.bind((host, port))
+    else:
+        port = args.p
+        s.bind((host, port))
+    if args.A == 'myapp':
+        wsgi_app = make_app()
+    elif args.A == 'image':
+        imageapp.setup()
+        p = imageapp.create_publisher()
+        wsgi_app = quixote.get_wsgi_app()
+    elif args.A == 'altdemo':
+        p = create_publisher()
+        wsgi_app = quixote.get_wsgi_app()
+    else:
+        wsgi_app = make_app()  # In the event that no argument is passed just make my_app
 
     print "Starting server on", host, port
     print "The Web server URL for this would be http://%s:%d/" % (host, port)
@@ -66,8 +88,9 @@ def handle_connection(conn, wsgi_app):
     environ['CONTENT_TYPE'] = headers.get('content-type', '')
     environ['CONTENT_LENGTH'] = headers.get('content-length', '')
     environ['wsgi.input'] = StringIO.StringIO(message)
-
+    # Used by quixote apps
     environ['SCRIPT_NAME'] = ''
+    # Used to pass WSGI validation
     environ['SERVER_NAME'] = 'My Server'
     environ['SERVER_PORT'] = 'My Port'
     environ['wsgi.version'] = (1, 0)
@@ -76,6 +99,7 @@ def handle_connection(conn, wsgi_app):
     environ['wsgi.multiprocess'] = True
     environ['wsgi.run_once'] = True
     environ['wsgi.url_scheme'] = 'http'
+    # Used to handle cookies.
     environ['HTTP_COOKIE'] = headers.get('cookie', '')
 
     # Declares variables in dictionary so they can be changed by start_response.

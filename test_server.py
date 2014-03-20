@@ -1,5 +1,7 @@
 import server
 
+from app import make_app
+
 class FakeConnection(object):
     """
     A fake connection class that mimics a real TCP socket for the purpose
@@ -29,48 +31,47 @@ class FakeConnection(object):
 
 def test_handle_connection():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn, "arctic.cse.msu.edu", "9943")
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 200' in conn.sent and 'form' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_connection_content():
     conn = FakeConnection("GET /content HTTP/1.0\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn, "arctic.cse.msu.edu", "9943")
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 200' in conn.sent and 'content' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_connection_file():
     conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn, "arctic.cse.msu.edu", "9943")
+    server.handle_connection(conn, app)
 
-    assert 'HTTP/1.0 200' in conn.sent and 'file' in conn.sent, \
+    assert 'HTTP/1.0 200' in conn.sent and 'text/plain' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
 def test_handle_connection_image():
     conn = FakeConnection("GET /image HTTP/1.0\r\n\r\n")
-    expected_return = 'HTTP/1.0 200 OK\r\n' + \
-                      'Content-type: text/html\r\n' + \
-                      '\r\n' + \
-                      '<h1>So many images!</h1>'
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
     print conn.sent
 
-    assert 'HTTP/1.0 200' in conn.sent and 'image' in conn.sent, \
+    assert 'HTTP/1.0 200' in conn.sent and 'image/jpeg' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
-
-    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
 
 def test_handle_submit():
     conn = FakeConnection("GET /submit?firstname=Bill&lastname=Nye" + \
             "HTTP/1.1\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'html' in conn.sent and 'Bill' in conn.sent \
       and 'Nye' in conn.sent, 'Got: %s' % (repr(conn.sent),)
@@ -78,8 +79,9 @@ def test_handle_submit():
 def test_handle_submit_no_first_name():
     conn = FakeConnection("GET /submit?firstname=%lastname=Nye" + \
             "HTTP/1.1\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'html' in conn.sent and 'Nye' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
@@ -87,29 +89,30 @@ def test_handle_submit_no_first_name():
 def test_handle_submit_no_last_name():
     conn = FakeConnection("GET /submit?firstname=Bill&lastname=" + \
             "HTTP/1.1\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'html' in conn.sent and 'Bill' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
 
 def test_handle_not_found():
     conn = FakeConnection("GET /fake HTTP/1.0\r\n\r\n")
+    app = make_app()
 
     server.handle_connection(conn)
 
     assert 'HTTP/1.0 404' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
 
-
-
 # Testing POST connections
 
 def test_handle_connection_post():
     conn = FakeConnection("POST / HTTP/1.0\r\n" + \
             "Content-length: 0\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 200' in conn.sent and 'form' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
@@ -118,8 +121,9 @@ def test_handle_submit_post():
     conn = FakeConnection("POST /submit HTTP/1.1\r\n" + \
             "Content-Length: 31\r\n\r\n" + \
             "firstname=Bill&lastname=Nye")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 200' in conn.sent and 'Hello' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
@@ -132,8 +136,9 @@ def test_handle_submit_post_multipart_and_form_data():
             "\r\n------WebKitFormBoundaryAaa127xQakxMcNYm\r\n" + \
             "Content-Disposition: form-data; name='lastname'\r\n\r\nNye" + \
             "\r\n------WebKitFormBoundaryAaa127xWakxMcNYm--')")
-
-    server.handle_connection(conn)
+    app = make_app()
+    
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 200' in conn.sent and 'Hello' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
@@ -142,8 +147,9 @@ def test_handle_not_found_post():
     conn = FakeConnection("POST /nada HTTP/1.1\r\n" + \
             "Content-Length: 32\r\n\r\n" + \
             "firstname=Bill&lastname=Nye")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 404' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
@@ -153,16 +159,18 @@ def test_handle_long_request():
     conn = FakeConnection("POST /submit HTTP/1.1\r\n" + \
             "Content-Length: 4020\r\n\r\n" + \
             "firstname=%s&lastname=%s" % (firstname, lastname))
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 200' in conn.sent and 'Hello' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)
 
 def test_handle_empty_request():
     conn = FakeConnection("\r\n\r\n")
+    app = make_app()
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, app)
 
     assert 'HTTP/1.0 404' in conn.sent, \
             'Got: %s' % (repr(conn.sent),)

@@ -15,7 +15,7 @@ def setup():
     html.init_templates()
 
     some_data = open('imageapp/dice.png', 'rb').read()
-    image.add_image(some_data)
+    image.add_image(some_data, 'png')
 
 def teardown():
     pass

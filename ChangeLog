@@ -9,3 +9,9 @@
  * Added a return for a 'Content-type' of text/html
  * Added html templates inherited from a base.html
  * Refactored for wsgi
+
+ * HW 8
+ * Added command line support
+ * Added twill testing
+ * Added support for .jpg and .tiff for Project
+ * Modified root directory to accept .tiff and .jpeg
