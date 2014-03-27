@@ -15,3 +15,12 @@
  * Added twill testing
  * Added support for .jpg and .tiff for Project
  * Modified root directory to accept .tiff and .jpeg
+
+ * HW 9
+ * Integrated quotes app
+ * Integrated chat app
+ * Project: Add a URL that provides a list of images, resized to thumbnails:-
+                 Added a link on the index page to see a list of images that
+				 were uploaded (most recent being first)
+
+				 

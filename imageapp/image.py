@@ -2,13 +2,13 @@
 
 images = {}
 
-def add_image(data, filetype):
+def add_image(filename, data):
     if images:
         image_num = max(images.keys()) + 1
     else:
         image_num = 0
 
-    images[image_num] = [data, filetype]
+    images[image_num] = (filename, data)
     return image_num
 
 def get_image(num):

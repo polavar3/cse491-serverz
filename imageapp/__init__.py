@@ -14,8 +14,8 @@ def create_publisher():
 def setup():
     html.init_templates()
 
-    some_data = open('imageapp/dice.png', 'rb').read()
-    image.add_image(some_data, 'png')
+    some_data = open('imageapp/lfc.jpg', 'rb').read()
+    image.add_image('imageapp/lfc.jpg', some_data)
 
 def teardown():
     pass
