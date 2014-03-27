@@ -1,0 +1,36 @@
+<head>
+
+<style type="text/css">
+    #wrapper {
+    width: 240px;
+    height: 80px;
+    margin: auto;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid black;
+    text-align: center;
+}
+</style>
+
+<script src="jquery-1.3.2.min.js"></script>
+
+<script type="text/javascript">
+
+    $(dccument).ready(function() {
+        $("#generate").click(function() {
+            $("#quote").load("generate_quote");
+        })
+    });
+
+</script>
+</head>
+
+<body>
+
+    <div id="wrapper">
+        <input type="submit" id="generate" value="Generate!">
+        <div id="quote"></div>
+    </div>
+</body>
+
+
