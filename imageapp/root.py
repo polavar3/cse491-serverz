@@ -36,7 +36,7 @@ class RootDirectory(Directory):
         filetype = the_file.orig_filename.split('.')[1]
         if(filetype == 'tif' or filetype == 'tiff'):
             filetype = 'tiff'
-        elif(filetype == 'jepg' or filetype == 'jpg'):
+        elif(filetype == 'jpeg' or filetype == 'jpg'):
             filetype == 'jpg'
         else:
             filetype == 'png'
