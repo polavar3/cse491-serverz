@@ -23,4 +23,14 @@
                  Added a link on the index page to see a list of images that
 				 were uploaded (most recent being first)
 
+* HW 10
+* Projects 8 and 15 implemented
+* Project 8 minimally implemented
+* Users may comment on the "most recent image" page
+* Comments are global for all pictures
+* Functionality implemented using quixote and basic html
+* Project 15 fully implemented
+* Users can login, logout and create an account
+* Only one active account at a time and no identical accounts
+* Test user of Username Ari password Liverpool
 				 

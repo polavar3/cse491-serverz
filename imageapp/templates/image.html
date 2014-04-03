@@ -1,8 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 Here is your image:
 <p>
 <img width=40% src='image_raw?special=latest'/>
+<br>
+
+{{ comment_block }}
+<br>
+
+<form action='submit_comment' method='GET'>
+    <p>Comment: <input type='text' name='comment'></p>
+    <p><input type='submit' value='Submit'>
+</form></p>
 
 {% endblock %}
