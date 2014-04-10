@@ -33,4 +33,10 @@
 * Users can login, logout and create an account
 * Only one active account at a time and no identical accounts
 * Test user of Username Ari password Liverpool
-				 
+	
+* HW 11
+* Cookie app functionality implemented
+* All data made persistent and scoring feature implement for images
+* Images can be upvoted/downvoted
+* Comments and scores are now persistent
+* All images persistent as well
