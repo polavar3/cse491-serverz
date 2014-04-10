@@ -1,0 +1,14 @@
+follow login
+formvalue 1 name Ari
+submit
+
+find "Welcome, Ari!"
+
+go /
+find "Hello, Ari."
+
+follow logout
+find "Goodbye, Ari."
+
+follow "start over"
+notfind "Hello"
