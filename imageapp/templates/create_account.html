@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1> Account Creation Page: </h1><br>
+{{ message }}<br><br>
+
+<form action='create_login' method='GET'>
+    <p>user name: <input type='text' name='username'></p>
+    <p>password: <input type='text' name='password'></p>
+    <p><input type='submit' value='Submit'>
+</form></p>
+
+{% endblock %}
