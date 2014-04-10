@@ -12,6 +12,7 @@ import chat
 
 from app import make_app
 from quixote.demo import create_publisher
+from cookieapp import make_cookie_app
 # from quixote.demon.mini_demo import create_publisher
 # from quixote.demo.altdemo import create_publisher
 # from wsgiref.validate import validator           
@@ -20,7 +21,7 @@ def main():
     host = socket.getfqdn() # Get local machine name.
 
     parser = argparse.ArgumentParser() #creating a parser 
-    parser.add_argument("-A", choices=['image', 'altdemo', 'myapp', 'quotes', 'chat'],
+    parser.add_argument("-A", choices=['image', 'altdemo', 'myapp', 'quotes', 'chat', 'cookie'],
             help='Choose which app you would like to run')
     parser.add_argument("-p", type=int, help="Choose the port you would like to run on.")
     args = parser.parse_args()
@@ -46,6 +47,8 @@ def main():
         wsgi_app = quotes.create_quotes_app(directory_path + 'quotes.txt', directory_path + 'html')
     elif args.A == "chat":
         wsgi_app = chat.create_chat_app('./chat/html')
+    elif args.A == "cookie":
+        wsgi_app = make_cookie_app()
     else:
         wsgi_app = make_app() #In the event that no argument is passed just make my_app
 
