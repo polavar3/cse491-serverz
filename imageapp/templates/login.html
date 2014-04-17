@@ -2,6 +2,7 @@
 
 {% block content %}
 
+<div class = "contentText">
 <h1> Login Page: </h1><br>
 {{ login_message }}<br><br>
 
@@ -14,6 +15,8 @@
 </form></p>
 <form action='submit_logout' method='GET'>
     <p><input type='submit' value='Logout'><br>
-    <a href="/create_account">Create Account</a>
+    <a href="/create_account">Create Account</a><br>
+    <a href="/">Return to Home Page</a>
 </form></p>
+</div>
 {% endblock %}

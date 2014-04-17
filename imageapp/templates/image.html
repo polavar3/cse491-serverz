@@ -2,21 +2,24 @@
 
 {% block content %}
 
-Here is your image:
-<p>
-<img width=40% src='image_raw'/>
-<p>
-Score: <span id="score"></span>
-<p>
-<button id='upvote_button'>Upvote</button>
-<p>
-<button id='downvote_button'>Downvote</button>
-<p>
-<h2>Comments</h2>
-<ul id="comments">
-</ul>
-<input type="text" id='add_comment' />
-<button id="add_comment_button">Add Comment</button>
+<div class="contentText">
+    <a href="/" >Return to Home Page</a><br>
+    Here is your image:
+    <p>
+    <div id="imageContainer"></div>
+    <p>
+    Score: <span id="score"></span>
+    <p>
+    <button id='upvote_button'>Upvote</button>
+    <p>
+    <button id='downvote_button'>Downvote</button>
+    <p>
+    <h2>Comments</h2>
+    <ul id="comments">
+    </ul>
+    <input type="text" id='add_comment' />
+    <button id="add_comment_button">Add Comment</button>
+</div>
 <script type="text/javascript">
 var imageNum = window.location.href.split("?num=")[1]
 

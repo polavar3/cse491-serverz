@@ -6,7 +6,7 @@ from . import html, image
 
 #Username and Password Global Dictionary
 accounts = {}
-accounts["justin"] = "yolo"
+accounts["ari"] = "yolo"
 current_user = '' 
 welcome_message = "No User Currently Logged In"
 comment_block = ''
@@ -26,6 +26,11 @@ class RootDirectory(Directory):
     @export(name='upload')
     def upload(self):
         return html.render('upload.html')
+
+    @export(name='set')
+    def set(self):
+        response = quixote.get_response()
+        print response
 
     @export(name='upload_receive')
     def upload_receive(self):

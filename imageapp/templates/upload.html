@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<div class="contentText">
 Upload an image (jpg, png, or tif)
 
 <form enctype='multipart/form-data' action='upload_receive' method='POST'>
 Filename: <input type='file' name='file'><p>
-<input type='submit'>
+<input type='submit'><br>
+<a href="/">Return to Home Page</a>
 </form>
+
+</div>
 {% endblock %}

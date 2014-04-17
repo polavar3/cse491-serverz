@@ -40,3 +40,12 @@
 * Images can be upvoted/downvoted
 * Comments and scores are now persistent
 * All images persistent as well
+
+* HW 12
+* Implemented the project of swiping a template from oswd.org
+* Referenced the CSS file in base.html, thus in effect it is referenced in all
+* pages
+* Implemented AJAX image upload with JQuery
+* On uploading an image, it shows the image on the page, puts it in the
+* database and displays a success message. If it fails, an error message 
+* is displayed
