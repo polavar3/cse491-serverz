@@ -13,9 +13,9 @@ class Image:
 
 images = {}
 
-def add_image(filename, data):
+def add_image(filename, data, description):
     # insert to database
-    insert_image(filename, data)
+    insert_image(filename, data, description)
 
 def get_image(num):
     return retrieve_image(num)
@@ -23,7 +23,7 @@ def get_image(num):
 def get_latest_image():
     return retrieve_image(-1)
 
-def insert_image(filename, data):
+def insert_image(filename, data, description):
     # connect to the already existing database
     db = sqlite3.connect('images.sqlite')
 
@@ -33,8 +33,8 @@ def insert_image(filename, data):
     # grab whatever it is you want to put in the database
 
     # insert!
-    db.execute('INSERT INTO image_store (filename, score, image) \
-        VALUES (?,?,?)', (filename, 1, data))
+    db.execute('INSERT INTO image_store (filename, score, image, description) \
+        VALUES (?,?,?,?)', (filename, 1, data, description))
     db.commit()
 
 # retrieve an image from the database.
@@ -50,13 +50,13 @@ def retrieve_image(i):
 
     # select all of the images
     if i >= 0:
-        c.execute('SELECT i, filename, score, image FROM image_store where i=(?)', (i,))
+        c.execute('SELECT i, filename, score, image, description FROM image_store where i=(?)', (i,))
     else:
-        c.execute('SELECT i, filename, score, image FROM image_store ORDER BY i DESC LIMIT 1')
+        c.execute('SELECT i, filename, score, image, description FROM image_store ORDER BY i DESC LIMIT 1')
 
     # grab the first result (this will fail if no results!)
     try:
-        i, filename, score, image = c.fetchone()
+        i, filename, score, image, description = c.fetchone()
 
         return Image(filename, image, score)
     except:
@@ -114,6 +114,24 @@ def get_image_score(i):
     val = int(c.fetchone()[0])
     print val
     return val
+
+def get_image_description(i):
+    #connect to database
+    db = sqlite3.connect('images.sqlite')
+
+    # get a query handle (or "cursor")
+    c = db.cursor()
+
+    # select all of the images
+    if i >= 0:
+        c.execute('SELECT description FROM image_store where i=(?)', (i,))
+    else:
+        c.execute('SELECT description FROM image_store ORDER BY i DESC LIMIT 1')
+
+    val = c.fetchone()[0]
+    print "description: ",val
+    return val
+
 
 def increment_image_score(i):
 # connect to database

@@ -8,6 +8,8 @@
     <p>
     <div id="imageContainer"></div>
     <p>
+    Description: <span id="description"></span>
+    <p>
     Score: <span id="score"></span>
     <p>
     <button id='upvote_button'>Upvote</button>
@@ -44,6 +46,18 @@ $.post("get_score?num=" + imageNum,
         else {
             $("#score").append(score)
         }
+        
+    });
+
+$.post("get_description?num=" + imageNum,
+    function(description) {
+        //description = parseInt(score);
+        //if (isNaN(score)){
+        //    $("#score").append(0)
+        //}
+        //else {
+            $("#description").append(description)
+        //}
         
     });
 

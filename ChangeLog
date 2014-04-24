@@ -49,3 +49,15 @@
 * On uploading an image, it shows the image on the page, puts it in the
 * database and displays a success message. If it fails, an error message 
 * is displayed
+
+* HW 13
+* Implemented Project 6
+* Added image metadata (image description and filename stored)
+* Upload allows for image description which is displayed below the image
+* Not adding a description displays "No Description"
+* Tried implementing Project 23
+* Images referenced by numbers in URL
+* Most recent image does not link to the lastest imagenum
+
+
+* Thanks for a great semester!

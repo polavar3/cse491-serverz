@@ -41,8 +41,11 @@ class RootDirectory(Directory):
         print dir(the_file)
         print 'received file with name:', the_file.base_filename
         data = the_file.read(the_file.get_size())
+        description = request.form['description']
+        if not description:
+            description = "No Description"
 
-        image.add_image(the_file.base_filename, data)
+        image.add_image(the_file.base_filename, data,description)
 
         return html.render('index.html',globals())
 
@@ -59,8 +62,11 @@ class RootDirectory(Directory):
         print dir(the_file)
         print 'received file with name:', the_file.base_filename
         data = the_file.read(the_file.get_size())
+        description = request.form['description']
+        if not description:
+            description = "No Description"
 
-        image.add_image(the_file.base_filename, data)
+        image.add_image(the_file.base_filename, data, description)
 
         return html.render('upload2_received.html')
 
@@ -242,6 +248,19 @@ class RootDirectory(Directory):
             i = -1
 
         return image.get_image_score(i)
+
+    @export(name='get_description')
+    def get_description(self):
+        response = quixote.get_response()
+        request = quixote.get_request()
+
+        try:
+            i = int(request.form['num'])
+        except:
+            i = -1
+
+        return image.get_image_description(i)
+
 
     @export(name='increment_score')
     def increment_score(self):
